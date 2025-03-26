@@ -15,7 +15,7 @@ from typing import Callable
 import Task_4
 
 # Please replace with your student id, including the "c" at the beginning!!!
-student_id = ''
+student_id = 'c23055646'
 
 # This is the classification scheme you should use for kNN
 classification_scheme = ['Female', 'Male', 'Primate', 'Rodent', 'Food']
@@ -39,7 +39,24 @@ classification_scheme = ['Female', 'Male', 'Primate', 'Rodent', 'Food']
 
 def getMostCommonClass(nearest_neighbours_classes: dict[str, int]) -> str:
     # Have fun! Below is just a dummy for returns, feel free to edit
+    #variables to track which class has the highest count and actual count
+    highest_count = 0
     winner = ''
+
+
+    #loop to go over all the classes in clasification_scheme
+    for classification_name in classification_scheme:
+
+        #checks to see the clas is in the dictionary
+        if classification_name in nearest_neighbours_classes:
+            current_count = nearest_neighbours_classes[classification_name]
+
+            #in place to update if the count is higher than the current highest count and settles ties
+            if current_count > highest_count:
+                highest_count = current_count
+                winner = classification_name
+                
+
     return winner
 
 
@@ -59,7 +76,29 @@ def getMostCommonClass(nearest_neighbours_classes: dict[str, int]) -> str:
 def getClassesOfKNearestNeighbours(measures_classes: list[tuple[float, str]], k: int, similarity_flag: bool) -> (
         dict)[str, int]:
     # Have fun! Below is just a dummy for returns, feel free to edit
+
+    #sorthing the list based on similarity(higher is better) or distance(lower is better)
+    if similarity_flag:
+        measures_classes.sort(reverse=True)  
+    else:
+        measures_classes.sort()
+    
     nearest_neighbours_classes = {}
+    
+    # initialise the classes in the classification scheme with a 0
+    for classification_name in classification_scheme:
+        nearest_neighbours_classes[classification_name] = 0
+    
+    # Counting the occureneces of classes in the k nearest neighboursS
+    count = 0
+    for measure, classification_name in measures_classes:
+        if count < k:
+            if classification_name in classification_scheme:
+                nearest_neighbours_classes[classification_name] += 1
+            count += 1
+        else:
+            break
+    
     return nearest_neighbours_classes
 
 
@@ -90,7 +129,40 @@ def kNN(training_data: numpy.typing.NDArray, data_to_classify: numpy.typing.NDAr
         read_func=Helper.readAndResize) -> numpy.typing.NDArray:
     # This sets the header list
     classified_data = numpy.array([['Path', 'ActualClass', 'PredictedClass']])
-    # Have fun!
+    
+    # iterate over each row in data_to_classify to classify
+    for row in data_to_classify[1:]:  
+        image_path = row[0]
+        actual_class = row[1]
+
+        #loading image in preparation for comparison
+        test_image = read_func(image_path)
+
+        measures_classes = []
+            
+        # Compare with each training image
+        for train_row in training_data[1:]: 
+            train_path = train_row[0]
+            train_class = train_row[1]
+                
+            # Load and preprocess the training image
+            training_image = read_func(train_path)
+                
+            # Calculate distance/similarity measure
+            measure = measure_func(test_image, training_image)
+                
+            # Add to list of measures and classes
+            measures_classes.append((measure, train_class))
+        
+        # Get dictionary of class counts among k nearest neighbors
+        nearest_classes = get_neighbour_classes_func(measures_classes, k, similarity_flag)
+            
+        # Find the most common class
+        predicted_class = most_common_class_func(nearest_classes)
+            
+        # Add result to classified_data
+        result_row = numpy.array([[image_path, actual_class, predicted_class]])
+        classified_data = numpy.vstack((classified_data, result_row))
 
     return classified_data
 
