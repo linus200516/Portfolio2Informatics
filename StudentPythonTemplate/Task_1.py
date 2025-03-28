@@ -89,7 +89,7 @@ def getClassesOfKNearestNeighbours(measures_classes: list[tuple[float, str]], k:
     for classification_name in classification_scheme:
         nearest_neighbours_classes[classification_name] = 0
     
-    # Counting the occureneces of classes in the k nearest neighboursS
+    # Counting the occureneces of classes in the k nearest neighbours
     count = 0
     for measure, classification_name in measures_classes:
         if count < k:

@@ -30,8 +30,27 @@ from Task_1 import classification_scheme
 #                            contained Female entries or not).
 
 def confusionMatrix(classified_data: numpy.typing.NDArray) -> numpy.typing.NDArray:
-    # Have fun! Below is just a dummy for returns, feel free to edit
-    return
+    # skipping the header row
+    classified_data = classified_data[1:]
+    
+    # making the 5x5 matrix filled with 0s based on the number of classes seen in task 1
+    num_classes = len(classification_scheme)
+    confusion_matrix = numpy.zeros((num_classes, num_classes), dtype=int)
+    
+    # Filling the confusion matrix
+    for row in classified_data:
+        
+        #Getting the actual and predicted classes 
+        actual_class = row[1]  
+        predicted_class = row[2]  
+        
+        #error prevention and converting the classes to indexes
+        if actual_class in classification_scheme and predicted_class in classification_scheme:
+            actual_index = classification_scheme.index(actual_class)
+            predicted_index = classification_scheme.index(predicted_class)
+            confusion_matrix[predicted_index, actual_index] += 1
+    
+    return confusion_matrix
 
 
 # These functions compute per-class true positives and false positives/negatives based on the provided confusion matrix.
@@ -47,18 +66,36 @@ def confusionMatrix(classified_data: numpy.typing.NDArray) -> numpy.typing.NDArr
 def computeTPs(confusion_matrix: numpy.typing.NDArray) -> list[int]:
     # Have fun! Below is just a dummy for returns, feel free to edit
     tps = []
+    #getting the diagonal values
+    for i in range(len(confusion_matrix)):
+        tp = confusion_matrix[i][i]
+        tps.append(tp)
     return tps
 
 
 def computeFPs(confusion_matrix: numpy.typing.NDArray) -> list[int]:
     # Have fun! Below is just a dummy for returns, feel free to edit
     fps = []
+    #getting the sums of non-diagonal values in the rows
+    for i in range(len(confusion_matrix)):
+        fp = 0
+        for j in range(len(confusion_matrix)):
+            if i != j:
+                fp += confusion_matrix[i][j]
+        fps.append(fp)
     return fps
 
 
 def computeFNs(confusion_matrix: numpy.typing.NDArray) -> list[int]:
     # Have fun! Below is just a dummy for returns, feel free to edit
     fns = []
+    #getting the sums of non-diagonal values in the columns
+    for i in range(len(confusion_matrix)):
+        fn = 0
+        for j in range(len(confusion_matrix)):
+            if i != j:
+                fn += confusion_matrix[j][i]
+        fns.append(fn)
     return fns
 
 
@@ -70,18 +107,27 @@ def computeFNs(confusion_matrix: numpy.typing.NDArray) -> list[int]:
 def computeBinaryPrecision(tp: int, fp: int, fn: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     precision = float(0)
+
+    if tp + fp > 0:
+        precision = float(tp) / float(tp + fp)
     return precision
 
 
 def computeBinaryRecall(tp: int, fp: int, fn: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     recall = float(0)
+    if tp + fn > 0:
+        recall = float(tp) / float(tp + fn)
     return recall
 
 
 def computeBinaryFMeasure(tp: int, fp: int, fn: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     f_measure = float(0)
+    precision = computeBinaryPrecision(tp, fp, fn)
+    recall = computeBinaryRecall(tp, fp, fn)
+    if precision + recall > 0:
+        f_measure = 2 * precision * recall / (precision + recall)
     return f_measure
 
 
@@ -98,24 +144,76 @@ def computeBinaryFMeasure(tp: int, fp: int, fn: int) -> float:
 def computeMacroPrecision(tps: list[int], fps: list[int], fns: list[int], data_size: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     precision = float(0)
+
+    total_classes = len(tps)
+    if total_classes == 0:
+        return precision
+    
+    total_precision = 0.0
+    for i in range(total_classes):
+        class_precision = 0.0
+        if tps[i] + fps[i] > 0:
+            class_precision += float(tps[i]) / float(tps[i] + fps[i])
+        total_precision += class_precision
+
+    precision = total_precision / total_classes
     return precision
+
+    
 
 
 def computeMacroRecall(tps: list[int], fps: list[int], fns: list[int], data_size: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     recall = float(0)
+    
+    total_classes = len(tps)
+    if total_classes == 0:
+        return recall
+    
+    total_recall = 0.0
+    for i in range(total_classes):
+        class_recall = 0.0
+        if tps[i] + fns[i] > 0:
+            class_recall = float(tps[i]) / float(tps[i] + fns[i])
+        total_recall += class_recall
+
+    recall = total_recall / total_classes
     return recall
 
 
 def computeMacroFMeasure(tps: list[int], fps: list[int], fns: list[int], data_size: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     f_measure = float(0)
+    
+    total_classes = len(tps)
+    if total_classes == 0:
+        return f_measure
+    
+    total_f_measure = 0.0
+    for i in range(total_classes):
+        precision = 0.0
+        if tps[i] + fps[i] + fns[i] > 0:
+            precision = float(tps[i]) / float(tps[i] + fps[i])
+
+        recall = 0.0
+        if tps[i] + fns[i] > 0:
+            recall = float(tps[i]) / float(tps[i] + fns[i])
+
+        class_f_measure = 0.0
+        if precision + recall > 0:
+            class_f_measure = 2 * precision * recall / (precision + recall)
+
+        total_f_measure += class_f_measure
+
+    f_measure = total_f_measure / total_classes
     return f_measure
 
 
 def computeAccuracy(tps: list[int], fps: list[int], fns: list[int], data_size: int) -> float:
     # Have fun! Below is just a dummy for returns, feel free to edit
     accuracy = float(0)
+    total_tp = sum(tps)
+    accuracy =float(total_tp) / float(data_size)
     return accuracy
 
 
@@ -134,6 +232,20 @@ def evaluateKNN(classified_data: numpy.typing.NDArray, confusion_func=confusionM
     recall = float(0)
     f_measure = float(0)
     accuracy = float(0)
+
+    confusion_matrix = confusion_func(classified_data)
+
+    tps = computeTPs(confusion_matrix)
+    fps = computeFPs(confusion_matrix)
+    fns = computeFNs(confusion_matrix)
+
+    data_size = len(classified_data) - 1  
+
+    precision = computeMacroPrecision(tps, fps, fns, data_size)
+    recall = computeMacroRecall(tps, fps, fns, data_size)
+    f_measure = computeMacroFMeasure(tps, fps, fns, data_size)
+    accuracy = computeAccuracy(tps, fps, fns, data_size)
+    
     return precision, recall, f_measure, accuracy
 
 

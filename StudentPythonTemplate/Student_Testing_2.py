@@ -94,7 +94,7 @@ class Task_2_Testing(unittest.TestCase):
     # or checked.
 
     def test6_computeBinaryRecall(self):
-        student_result = Task_2.computeBinaryPrecision(2, 6, 1)
+        student_result = Task_2.computeBinaryRecall(2, 6, 1)
         expected = 0.66666666666667
 
         result = roundEqual([student_result], [expected])
@@ -211,8 +211,13 @@ def roundEqual(nums1, nums2):
 
 
 if __name__ == "__main__":
-    test_classes_to_run = [Task_2_Testing]
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(test_classes_to_run)
+    suite = unittest.TestSuite()
+    
+    # Add each test class to the suite
+    for test_class in [Task_2_Testing]:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+    
     runner = unittest.TextTestRunner()
     runner.run(suite)

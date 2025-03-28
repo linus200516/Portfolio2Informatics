@@ -76,9 +76,15 @@ def validateDataFormat(data_to_validate):
     return formatCorrect
 
 
+
 if __name__ == "__main__":
-    test_classes_to_run = [Task_1_Testing]
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(test_classes_to_run)
+    suite = unittest.TestSuite()
+    
+    # Add each test class to the suite
+    for test_class in [Task_1_Testing]:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+    
     runner = unittest.TextTestRunner()
     runner.run(suite)
